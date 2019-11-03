@@ -37,7 +37,8 @@ THE SOFTWARE.
 #include "timer.h"
 #include "flash.h"
 
-typedef struct {
+struct USBD_GS_CAN_HandleTypeDef 
+{
 	uint8_t ep0_buf[CAN_CMD_PACKET_SIZE];
 
 	__IO uint32_t TxState;
@@ -62,9 +63,12 @@ typedef struct {
 	bool timestamps_enabled;
 	uint32_t sof_timestamp_us;
 
-        bool pad_pkts_to_max_pkt_size;
+	bool pad_pkts_to_max_pkt_size;
 
-} USBD_GS_CAN_HandleTypeDef __attribute__ ((aligned (4)));
+} __attribute__ ((aligned (4)));
+
+
+static USBD_GS_CAN_HandleTypeDef hcan;
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
 static uint8_t USBD_GS_CAN_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
@@ -287,28 +291,17 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 	1, // brp increment;
 };
 
-
 uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, FrameQueue *q_frame_pool, FrameQueue *q_from_host, led_data_t *leds)
 {
-	uint8_t ret = USBD_FAIL;
-	USBD_GS_CAN_HandleTypeDef* hcan = static_cast<USBD_GS_CAN_HandleTypeDef*>(calloc(1, sizeof(USBD_GS_CAN_HandleTypeDef)));
+	memset(&hcan, 0, sizeof(USBD_GS_CAN_HandleTypeDef));
+	hcan.q_frame_pool = q_frame_pool;
+	hcan.q_from_host = q_from_host;
+	hcan.leds = leds;
+	hcan.from_host_buf = nullptr;
 
-	if(hcan != 0) {
-		hcan->q_frame_pool = q_frame_pool;
-		hcan->q_from_host = q_from_host;
-		hcan->leds = leds;
-		pdev->pClassData = hcan;
-		hcan->from_host_buf = NULL;
-
-		ret = USBD_OK;
-	} else {
-		pdev->pClassData = 0;
-	}
-
-	return ret;
+	pdev->pClassData = &hcan;
+	return USBD_OK;
 }
-
-
 
 static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
