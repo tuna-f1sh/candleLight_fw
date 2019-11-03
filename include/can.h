@@ -31,6 +31,10 @@ THE SOFTWARE.
 #include "stm32f0xx_hal.h"
 #include <gs_usb.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	CAN_TypeDef *instance;
 	uint16_t brp;
@@ -52,3 +56,7 @@ bool can_send(can_data_t *hcan, struct gs_host_frame *frame);
 
 uint32_t can_get_error_status(can_data_t *hcan);
 bool can_parse_error_status(uint32_t err, struct gs_host_frame *frame);
+
+#ifdef __cplusplus
+}
+#endif

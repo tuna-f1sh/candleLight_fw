@@ -28,5 +28,13 @@ THE SOFTWARE.
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void timer_init();
 uint32_t timer_get();
+
+#ifdef __cplusplus
+}
+#endif

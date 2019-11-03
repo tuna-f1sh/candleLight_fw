@@ -45,10 +45,10 @@ typedef struct {
 	USBD_SetupReqTypedef last_setup_request;
 
 	struct gs_host_config host_config;
-	queue_t *q_frame_pool;
-	queue_t *q_from_host;
+	FrameQueue *q_frame_pool;
+	FrameQueue *q_from_host;
 
-        struct gs_host_frame *from_host_buf;
+	struct gs_host_frame *from_host_buf;
 
 	can_data_t *channels[NUM_CAN_CHANNEL];
 
@@ -288,10 +288,10 @@ static const struct gs_device_bt_const USBD_GS_CAN_btconst = {
 };
 
 
-uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_t *q_from_host, led_data_t *leds)
+uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, FrameQueue *q_frame_pool, FrameQueue *q_from_host, led_data_t *leds)
 {
 	uint8_t ret = USBD_FAIL;
-	USBD_GS_CAN_HandleTypeDef *hcan = calloc(1, sizeof(USBD_GS_CAN_HandleTypeDef));
+	USBD_GS_CAN_HandleTypeDef* hcan = static_cast<USBD_GS_CAN_HandleTypeDef*>(calloc(1, sizeof(USBD_GS_CAN_HandleTypeDef)));
 
 	if(hcan != 0) {
 		hcan->q_frame_pool = q_frame_pool;
@@ -319,7 +319,7 @@ static uint8_t USBD_GS_CAN_Start(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	  USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*) pdev->pClassData;
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_IN, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
 		USBD_LL_OpenEP(pdev, GSUSB_ENDPOINT_OUT, USBD_EP_TYPE_BULK, CAN_DATA_MAX_PACKET_SIZE);
-                hcan->from_host_buf = queue_pop_front(hcan->q_frame_pool);
+		hcan->from_host_buf = hcan->q_frame_pool->pop_front();
 		USBD_GS_CAN_PrepareReceive(pdev);
 		ret = USBD_OK;
 	} else {
@@ -611,12 +611,11 @@ static uint8_t USBD_GS_CAN_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
 
 	uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, epnum);
 	if (rxlen >= (sizeof(struct gs_host_frame)-4)) {
-	        struct gs_host_frame *frame = queue_pop_front_i(hcan->q_frame_pool);
-		if(frame){
-		        queue_push_back_i(hcan->q_from_host, hcan->from_host_buf);
-		        hcan->from_host_buf = frame;
-		  
-		        retval = USBD_OK;
+		auto frame = hcan->q_frame_pool->pop_front_i();
+		if (frame != nullptr) {
+			hcan->q_from_host->push_back_i(hcan->from_host_buf);
+			hcan->from_host_buf = frame;
+			retval = USBD_OK;
 		}
 		else{
 		// Discard current packet from host if we have no place

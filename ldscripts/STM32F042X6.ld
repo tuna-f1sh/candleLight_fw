@@ -1,5 +1,5 @@
 __STACK_SIZE = 1024;
-__HEAP_SIZE  = 2560;
+__HEAP_SIZE  = 512;
 
 MEMORY
 {

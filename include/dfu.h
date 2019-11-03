@@ -26,4 +26,12 @@ THE SOFTWARE.
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void dfu_run_bootloader();
+
+#ifdef __cplusplus
+}
+#endif

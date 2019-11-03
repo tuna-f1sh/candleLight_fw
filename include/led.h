@@ -29,6 +29,10 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
 	led_mode_off,
 	led_mode_normal,
@@ -77,3 +81,7 @@ void led_set_mode(led_data_t *leds,led_mode_t mode);
 void led_run_sequence(led_data_t *leds, led_seq_step_t *sequence, int32_t num_repeat);
 void led_indicate_trx(led_data_t *leds, led_num_t num);
 void led_update(led_data_t *leds);
+
+#ifdef __cplusplus
+}
+#endif

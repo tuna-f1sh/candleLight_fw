@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
-project(candleLightFirmware C ASM)
+project(candleLightFirmware LANGUAGES C CXX)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CPP_STANDARD 14)
 
 add_compile_options(
-    -std=gnu11
     -mcpu=cortex-m0 -mthumb 
     -Wall -Wextra -Werror
     -fmessage-length=0 
@@ -34,20 +36,22 @@ set(
 
         include/gs_usb.h
         include/usbd_desc.h src/usbd_desc.c
-        include/usbd_gs_can.h src/usbd_gs_can.c
-        src/usbd_conf.c
+        include/usbd_gs_can.h src/usbd_gs_can.cpp
+        src/usbd_conf.cpp
 
         include/can.h src/can.c
         include/dfu.h src/dfu.c
         include/flash.h src/flash.c
         include/gpio.h src/gpio.c
         include/led.h src/led.c
-        include/queue.h src/queue.c
+        include/CriticalSection.h
+        include/Queue.h
+
         include/timer.h src/timer.c
         include/util.h src/util.c
 
         src/startup.c
-        src/main.c
+        src/main.cpp
         src/interrupts.c
 )
 
