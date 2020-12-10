@@ -41,6 +41,9 @@ THE SOFTWARE.
 #include "dfu.h"
 #include "timer.h"
 #include "flash.h"
+#include "i2c.h"
+#include "usbpd_nvm.h"
+#include "canape.h"
 
 void HAL_MspInit(void);
 void SystemClock_Config(void);
@@ -68,6 +71,7 @@ int main(void)
 	flash_load();
 
 	gpio_init();
+  MX_I2C1_Init();
 
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, LED1_Active_High, LED2_GPIO_Port, LED2_Pin, LED2_Active_High);
 
@@ -107,8 +111,12 @@ int main(void)
 
 	while (1) {
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
+    struct canape_config_t config;
 		if (frame != 0) { // send can message from host
-			if (can_send(&hCAN, frame)) {
+		  if (frame->can_id == CANAPE_CONFIG_ID && frame->can_dlc == sizeof(config)) {
+        memcpy(&config, frame->data, sizeof(config));
+        process_canape_config(&config);
+      } else if (can_send(&hCAN, frame)) {
 				// Echo sent frame back to host
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
@@ -196,6 +204,10 @@ void SystemClock_Config(void)
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1);
+
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB|RCC_PERIPHCLK_I2C1;
+	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
 
 	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
 	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;

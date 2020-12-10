@@ -38,10 +38,14 @@ set(
         include/dfu.h src/dfu.c
         include/flash.h src/flash.c
         include/gpio.h src/gpio.c
+        include/i2c.h src/i2c.c
         include/led.h src/led.c
         include/queue.h src/queue.c
         include/timer.h src/timer.c
         include/util.h src/util.c
+        include/stusb4500.h src/stusb4500.c
+        include/usbpd_nvm.h src/usbpd_nvm.c
+        include/canape.h src/canape.c
 
         src/main.c
         src/interrupts.c
