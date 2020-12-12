@@ -88,6 +88,19 @@ void gpio_init()
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(nSI86EN_Port, &GPIO_InitStruct);	//enable si86
-
 #endif // BOARD_cannette
+
+#if BOARD == BOARD_canape
+	GPIO_InitStruct.Pin = SET_IDS_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(SET_IDS_GPIO_Port, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = VBUS_ALWAYS_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(VBUS_ALWAYS_GPIO_Port, &GPIO_InitStruct);
+#endif
 }

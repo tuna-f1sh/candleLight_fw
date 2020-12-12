@@ -24,8 +24,10 @@ THE SOFTWARE.
 
 */
 
+#include <string.h>
 #include "can.h"
 #include "config.h"
+#include "canape.h"
 
 void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 {
@@ -161,6 +163,16 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 		rx_frame->data[7] = (fifo->RDHR >> 24) & 0xFF;
 
 		can->RF0R |= CAN_RF0R_RFOM0; // release FIFO
+
+    // is the Canape config ID enable?
+    if (HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin)) {
+      struct canape_config_t config;
+      // process Canape command if it is one
+      if (rx_frame->can_id == CANAPE_CONFIG_ID && rx_frame->can_dlc == sizeof(config) && rx_frame->data[7] == CANAPE_KEY) {
+        memcpy(&config, rx_frame->data, sizeof(config));
+        process_canape_config(&config);
+      }
+    }
 
 		return true;
 	} else {

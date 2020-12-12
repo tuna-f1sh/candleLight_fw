@@ -28,7 +28,9 @@
 #define SECTOR_4  0x10
 #define SECTOR_5  0x20
 
-void nvm_flash(void);
-void nvm_read(void);
-void soft_reset();
+void stusb_nvm_flash(void);
+void stusb_nvm_read(void);
 uint8_t setPowerAbove5vOnly(uint8_t value);
+void setPdoNumber(uint8_t value);
+void setVoltage(uint8_t pdo_numb, float voltage);
+void setCurrent(uint8_t pdo_numb, float current);

@@ -2,10 +2,11 @@
  * STUSB4500 I2C Driver
  *
  * Largely based on ST firmware example: https://github.com/usb-c/STUSB4500/tree/master/Firmware/Project/Src
- * Otter-Iron support added by J.Whittington 2020
+ * Support added by J.Whittington 2020
  *
  */
 #include "stusb4500.h"
+#include "canape.h"
 
 USB_PD_SNK_PDO_TypeDef pdo_profile[3];
 extern I2C_HandleTypeDef hi2c1;
@@ -64,4 +65,29 @@ HAL_StatusTypeDef stusb_set_valid_pdo(uint8_t valid_count) {
     ret = write_register(STUSB4500_ADDR, DPM_PDO_NUMB, &valid_count, 1);
   }
   return ret;
+}
+
+HAL_StatusTypeDef stusb_set_vbus(uint16_t voltage_mv) {
+  HAL_StatusTypeDef ret;
+
+  if( (voltage_mv < 5000) || (voltage_mv > 20000) ) {
+    return HAL_ERROR;
+  }
+
+  ret += stusb_set_valid_pdo(2);
+  ret += stusb_update_pdo(1, 5000, CANAPE_MAX_I);
+  ret += stusb_update_pdo(2, voltage_mv, CANAPE_MAX_I);
+  ret += stusb_soft_reset();
+
+  return ret;
+}
+
+HAL_StatusTypeDef stusb_vbus_enable(void) {
+  // enable VBUS by setting PDO to 1: standard USB
+  return stusb_set_valid_pdo(1);
+}
+
+HAL_StatusTypeDef stusb_soft_reset() {
+  uint8_t set = 1;
+  return write_register(STUSB4500_ADDR, RESET_CTRL, &set, 1);
 }

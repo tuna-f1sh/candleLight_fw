@@ -89,6 +89,7 @@ int main(void)
 	can_init(&hCAN, CAN);
 	can_disable(&hCAN);
 
+  canape_init();
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
 	q_from_host  = queue_create(CAN_QUEUE_SIZE);
@@ -113,7 +114,11 @@ int main(void)
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
     struct canape_config_t config;
 		if (frame != 0) { // send can message from host
-		  if (frame->can_id == CANAPE_CONFIG_ID && frame->can_dlc == sizeof(config)) {
+		  // process canape internal message if enabled
+		  if (HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) &&
+            frame->can_id == CANAPE_CONFIG_ID &&
+            frame->can_dlc == sizeof(config) &&
+            frame->data[7] == CANAPE_KEY) {
         memcpy(&config, frame->data, sizeof(config));
         process_canape_config(&config);
       } else if (can_send(&hCAN, frame)) {
