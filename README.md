@@ -8,11 +8,17 @@ This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, nota
 - USB2CAN: https://github.com/roboterclubaachen/usb2can (STM32F042x6)
 - CANAlyze: https://kkuchera.github.io/canalyze/ (STM32F042x6)
 - VulCAN Gen1: https://shop.copperforge.cc/products/ac41 (STM32F042x6)
+- Canapé: https://github.com/tuna-f1sh/canape (STM32F042x6)
 
 Of important note is that the common STM32F103 will NOT work with this firmware because its hardware cannot use both USB and CAN simultaneously.
 
 This implements the interface of the mainline linux gs_usb kernel module and
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.
+
+## Canapé Feature Road Map
+
+- Add flash write of bit-timing when set via gs_usb for retrival and CAN enable when no USB connected and Canapé CAN ID config enabled.
+- Add gs_usb support for Canapé config commands and driver patch rather than scrapping the CAN messages.
 
 ## Known issues
 

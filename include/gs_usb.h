@@ -145,6 +145,7 @@ enum gs_usb_breq {
 	GS_USB_BREQ_IDENTIFY,
 	GS_USB_BREQ_GET_USER_ID,
 	GS_USB_BREQ_SET_USER_ID,
+	GS_USB_BREQ_CANAPE_CONFIG,
 };
 
 enum gs_can_mode {

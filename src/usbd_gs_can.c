@@ -418,6 +418,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 			}
 			break;
 
+		// TODO save bit timing to flash for retrival and can_enable with CAN ID config switch set
 		case GS_USB_BREQ_BITTIMING:
 			timing = (struct gs_device_bittiming*)hcan->ep0_buf;
 			if (req->wValue < NUM_CAN_CHANNEL) {
@@ -430,6 +431,11 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 				);
 			}
 			break;
+
+		// TODO add Canape config to gs_usb driver
+		case GS_USB_BREQ_CANAPE_CONFIG:
+			memcpy(&hcan->host_config, hcan->ep0_buf, sizeof(hcan->host_config));
+		  break;
 
 		default:
 			break;
@@ -477,6 +483,7 @@ static uint8_t USBD_GS_CAN_Config_Request(USBD_HandleTypeDef *pdev, USBD_SetupRe
 		case GS_USB_BREQ_BITTIMING:
 		case GS_USB_BREQ_IDENTIFY:
 		case GS_USB_BREQ_SET_USER_ID:
+		case GS_USB_BREQ_CANAPE_CONFIG:
 			hcan->last_setup_request = *req;
 			USBD_CtlPrepareRx(pdev, hcan->ep0_buf, req->wLength);
 			break;

@@ -30,6 +30,8 @@ void process_canape_config(struct canape_config_t *pconfig) {
           stusb_nvm_flash();
           stusb_soft_reset();
           led_run_sequence(&hLED, nvm_set_seq, 20);
+        } else {
+          led_run_sequence(&hLED, nvm_set_seq, 1);
         }
       } else {
         if (setting == 0x01) {
@@ -40,8 +42,8 @@ void process_canape_config(struct canape_config_t *pconfig) {
       break;
     case CANAPE_FMSG_SPDO:
       // set pdo profile config
-      memcpy(&voltage, &pconfig->payload[1], 2);
-      memcpy(&current, &pconfig->payload[3], 2);
+      memcpy(&voltage, &pconfig->payload[2], 2);
+      memcpy(&current, &pconfig->payload[4], 2);
       if (nvm) {
         // PDO 1 is not configurable in NVM
         if (setting != 1) {
@@ -71,7 +73,7 @@ void process_canape_config(struct canape_config_t *pconfig) {
       }
       break;
     case CANAPE_FMSG_SVLT:
-      // set voltage on request on VBUS now
+      // set voltage request on VBUS now
       memcpy(&voltage, &pconfig->payload[1], 2);
       stusb_set_vbus(voltage);
       break;
