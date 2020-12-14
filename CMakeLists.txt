@@ -44,7 +44,6 @@ set(
         include/timer.h src/timer.c
         include/util.h src/util.c
         include/stusb4500.h src/stusb4500.c
-        include/usbpd_nvm.h src/usbpd_nvm.c
         include/canape.h src/canape.c
 
         src/main.c

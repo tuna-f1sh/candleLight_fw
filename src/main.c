@@ -42,7 +42,6 @@ THE SOFTWARE.
 #include "timer.h"
 #include "flash.h"
 #include "i2c.h"
-#include "usbpd_nvm.h"
 #include "canape.h"
 
 void HAL_MspInit(void);
@@ -89,7 +88,9 @@ int main(void)
 	can_init(&hCAN, CAN);
 	can_disable(&hCAN);
 
+#if BOARD == BOARD_canape
   canape_init();
+#endif
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
 	q_from_host  = queue_create(CAN_QUEUE_SIZE);
@@ -115,7 +116,7 @@ int main(void)
     struct canape_config_t config;
 		if (frame != 0) { // send can message from host
 		  // process canape internal message if enabled
-		  if (HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) &&
+		  if ((HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) || CANAPE_IDS_ALWAYS) &&
             frame->can_id == CANAPE_CONFIG_ID &&
             frame->can_dlc == sizeof(config) &&
             frame->data[7] == CANAPE_KEY) {

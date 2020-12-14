@@ -164,8 +164,9 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 
 		can->RF0R |= CAN_RF0R_RFOM0; // release FIFO
 
-    // is the Canape config ID enable?
-    if (HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin)) {
+    // is the Canape config ID enable? // TODO this won't run unless CAN bus has been configured and enabled by USB comms.
+#if BOARD == BOARD_canape
+    if (HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) || CANAPE_IDS_ALWAYS) {
       struct canape_config_t config;
       // process Canape command if it is one
       if (rx_frame->can_id == CANAPE_CONFIG_ID && rx_frame->can_dlc == sizeof(config) && rx_frame->data[7] == CANAPE_KEY) {
@@ -173,6 +174,7 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
         process_canape_config(&config);
       }
     }
+#endif
 
 		return true;
 	} else {

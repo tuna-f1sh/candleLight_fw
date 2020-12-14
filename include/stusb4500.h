@@ -23,6 +23,8 @@ typedef union {
 } STUSB_GEN1S_RDO_REG_STATUS_RegTypeDef;
 
 #define RESET_CTRL             0x23
+
+#define VBUS_CTRL              0x27 // this is read only
 #define DPM_PDO_NUMB           0x70
 #define DPM_SNK_PDO1           0x85
 
@@ -61,7 +63,46 @@ HAL_StatusTypeDef stusb_read_rdo(STUSB_GEN1S_RDO_REG_STATUS_RegTypeDef *Nego_RDO
 HAL_StatusTypeDef stusb_update_pdo(uint8_t pdo_number, uint16_t voltage_mv, uint16_t current_ma);
 HAL_StatusTypeDef stusb_set_valid_pdo(uint8_t valid_count);
 HAL_StatusTypeDef stusb_set_vbus(uint16_t voltage_mv);
-HAL_StatusTypeDef stusb_vbus_enable(void);
-HAL_StatusTypeDef stusb_soft_reset();
+HAL_StatusTypeDef stusb_set_vbus_en(void);
+HAL_StatusTypeDef stusb_soft_reset(void);
+
+/*NVM FLasher Registers Definition */
+
+#define FTP_CUST_PASSWORD_REG 0x95
+#define FTP_CUST_PASSWORD  0x47
+#define FTP_CTRL_0              0x96
+#define FTP_CUST_PWR 0x80
+#define FTP_CUST_RST_N 0x40
+#define FTP_CUST_REQ 0x10
+#define FTP_CUST_SECT 0x07
+#define FTP_CTRL_1              0x97
+#define FTP_CUST_SER 0xF8
+#define FTP_CUST_OPCODE 0x07
+#define RW_BUFFER 0x53
+
+#define READ 0x00
+#define WRITE_PL 0x01
+#define WRITE_SER 0x02
+#define READ_PL 0x03
+#define READ_SER 0x04
+#define ERASE_SECTOR 0x05
+#define PROG_SECTOR 0x06
+#define SOFT_PROG_SECTOR 0x07
+
+#define SECTOR_0  0x01
+#define SECTOR_1  0x02
+#define SECTOR_2  0x04
+#define SECTOR_3  0x08
+#define SECTOR_4  0x10
+#define SECTOR_5  0x20
+
+void stusb_nvm_flash(void);
+void stusb_nvm_read(void);
+uint8_t stusb_nvm_power_above5v_only(uint8_t value);
+void stusb_nvm_set_pdo_number(uint8_t value);
+void stusb_nvm_set_voltage(uint8_t pdo_numb, float voltage);
+void stusb_nvm_set_curent(uint8_t pdo_numb, float current);
+uint8_t stusb_nvm_comms_capable(uint8_t value);
+void stusb_nvm_config_powerok(uint8_t value);
 
 #endif
