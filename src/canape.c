@@ -74,7 +74,7 @@ void process_canape_config(struct canape_config_t *pconfig) {
       break;
     case CANAPE_FMSG_SVLT:
       // set voltage request on VBUS now
-      memcpy(&voltage, &pconfig->payload[1], 2);
+      memcpy(&voltage, &pconfig->payload[0], 2);
       stusb_set_vbus(voltage);
       break;
     case CANAPE_FMSG_GRDO:

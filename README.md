@@ -15,12 +15,40 @@ Of important note is that the common STM32F103 will NOT work with this firmware 
 This implements the interface of the mainline linux gs_usb kernel module and
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.
 
-## Canapé Feature Road Map
+# Canapé Fork
+
+## USB Power Delivery (USB-PD)
+
+The on-board USB-C controller (STUSB4500) is configured for 5 V / 1A power delivery by default (PDO 2). One can configure the controller using the below CAN bus commands when using the [**candleLight_fw**](https://github.com/tuna-f1sh/candleLight_fw) fork and with the [internal CAN IDs switch](#dip-switches) set.
+
+These commands are scrapped from the recieved gs_usb Tx commands and will not be forwarded to the CAN bus when the switch is set. Ensure the DLC is 8 bytes, the ID is correct and byte seven is the Canapé key '0xAF'.
+
+The commands are also scrapped from the `can_recieved` callback but for this to work a USB connection must be enumerated and CAN bus setup in order for the CAN perphieral to be enabled with the correct bit-timing. In the future I may save the previous bit-timing to flash in order to enable this without USB connection.
+
+
+| ID    | Cmd          | 0    | 1          | 2          | 3         | 4         | 5         | 6         | 7    | Action                                                                  |
+|-------|--------------|------|------------|------------|-----------|-----------|-----------|-----------|------|-------------------------------------------------------------------------|
+| 0x010 | VBUS EN      | 0x01 | NVM (bool) | SET (bool) | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Set VBUS always enable (NVM) or try to enable VBUS by setting profile 1 |
+| 0x010 | Set PDO      | 0x02 | NVM (bool) | PROFILE    | VOLTAGE_L | VOLTAGE_H | CURRENT_L | CURRENT_H | 0xAF | Set power delivery profile number (1-3) voltage (mV) and current (mA)   |
+| 0x010 | Set Profiles | 0x03 | NVM (bool) | PROFILES   | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Set number of profile in use (1-3)                                      |
+| 0x010 | Set VBUS     | 0x04 | VOLTAGE_L  | VOLTAGE_H  | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Request voltage on VBUS (volatile)                                      |
+| 0x010 | Get RDO      | 0x05 | 0x00       | 0x00       | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Get enumerated profile number                                           |
+
+### Usage Notes
+
+* NVM flag will write to the NVM rather than volatile register. If a write is required, the **STUSB4500 will be soft reset** in order to re-enumerate the USB-PD profiles. The LEDs will flash rapidly 20 times when a NVM flash occurs. The volatile settings will also trigger a soft reset in order to re-enumerate. **A soft reset will mean the CAN network will need re-creating on the host**.
+* The NVM VBUS enable is the only concrete way to force VBUS; the volatile method attempts to enumerate a 5 V power delivery profile but this may not work with non-compliant devices.
+* When profile 2 is enumerated, the orange 'PD-OK' will illuminate. This can be changed to profile 3 with the solder link on the underside of the board.
+* Refer to the [STUSB4500 programming guide](https://www.st.com/resource/en/user_manual/dm00664189-the-stusb4500-software-programing-guide-stmicroelectronics.pdf) for more information.
+* **Excerise caution** configuring these and ideally use a USB-PD checker/multimeter to verify your configuration prior to powering a device!
+
+
+## Feature Road Map
 
 - Add flash write of bit-timing when set via gs_usb for retrival and CAN enable when no USB connected and Canapé CAN ID config enabled.
 - Add gs_usb support for Canapé config commands and driver patch rather than scrapping the CAN messages.
 
-## Known issues
+# Known issues
 
 Be aware that there is a bug in the gs_usb module in linux<4.5 that can crash the kernel on device removal.
 
@@ -29,7 +57,7 @@ Here is a fixed version that should also work for older kernels:
 
 The Firmware also implements WCID USB descriptors and thus can be used on recent Windows versions without installing a driver.
 
-## Building
+# Building
 
 Building requires arm-none-eabi-gcc toolchain.
 
@@ -44,7 +72,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/gcc-arm-none-eabi-8-2019-q3-update.cmak
 # cmake-gui ..
 # don't forget to specify the cmake toolchain file before configuring.
 
-make canalyze_fw # one of candleLight_fw / usb2can_fw / cantact_fw / canalyze_fw / canable_fw
+make canalyze_fw # one of candleLight_fw / usb2can_fw / cantact_fw / canalyze_fw / canable_fw / canape_fw
 # alternately, each board target may be disabled as cmake options
 
 ```
