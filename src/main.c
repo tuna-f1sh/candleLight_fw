@@ -113,9 +113,10 @@ int main(void)
 
 	while (1) {
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
-    struct canape_config_t config;
 		if (frame != 0) { // send can message from host
 		  // process canape internal message if enabled
+#if BOARD == BOARD_canape
+      struct canape_config_t config;
 		  if ((HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) || CANAPE_IDS_ALWAYS) &&
             frame->can_id == CANAPE_CONFIG_ID &&
             frame->can_dlc == sizeof(config) &&
@@ -123,6 +124,9 @@ int main(void)
         memcpy(&config, frame->data, sizeof(config));
         process_canape_config(&config);
       } else if (can_send(&hCAN, frame)) {
+#else
+      if (can_send(&hCAN, frame)) {
+#endif
 				// Echo sent frame back to host
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);

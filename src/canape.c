@@ -5,6 +5,7 @@
 #include "stusb4500.h"
 #include "can.h"
 
+#if BOARD == BOARD_canape
 extern led_data_t hLED;
 extern can_data_t hCAN;
 static STUSB_GEN1S_RDO_REG_STATUS_RegTypeDef srdo;
@@ -32,27 +33,28 @@ void process_canape_config(struct canape_config_t *pconfig) {
         }
       } else {
         if (setting == 0x01) {
-          setting = stusb_set_vbus_en();
+          stusb_set_vbus_en();
           stusb_soft_reset();
         }
       }
-      canape_send_reply(&hCAN, CANAPE_FMSG_VBUS, (uint8_t*) &setting, 1);
       break;
     case CANAPE_FMSG_SPDO:
       // set pdo profile config
       memcpy(&voltage, &pconfig->payload[1], 2);
       memcpy(&current, &pconfig->payload[3], 2);
       if (nvm) {
-        stusb_nvm_set_voltage(setting, (float) voltage / 1000);
-        stusb_nvm_set_curent(setting, (float) current / 1000);
-        stusb_nvm_flash();
-        stusb_soft_reset();
-        led_run_sequence(&hLED, nvm_set_seq, 20);
+        // PDO 1 is not configurable in NVM
+        if (setting != 1) {
+          stusb_nvm_set_voltage(setting, (float) voltage / 1000);
+          stusb_nvm_set_current(setting, (float) current / 1000);
+          stusb_nvm_flash();
+          stusb_soft_reset();
+          led_run_sequence(&hLED, nvm_set_seq, 20);
+        }
       } else {
-        setting = stusb_update_pdo(setting, voltage, current);
+        stusb_update_pdo(setting, voltage, current);
         stusb_soft_reset();
       }
-      canape_send_reply(&hCAN, CANAPE_FMSG_SPDO, (uint8_t*) &setting, 1);
       break;
     case CANAPE_FMSG_PDON:
       // set number of profiles in use
@@ -63,17 +65,15 @@ void process_canape_config(struct canape_config_t *pconfig) {
           stusb_soft_reset();
           led_run_sequence(&hLED, nvm_set_seq, 20);
         } else {
-          setting = stusb_set_valid_pdo(setting);
+          stusb_set_valid_pdo(setting);
           stusb_soft_reset();
         }
       }
-      canape_send_reply(&hCAN, CANAPE_FMSG_PDON, (uint8_t*) &setting, 1);
       break;
     case CANAPE_FMSG_SVLT:
       // set voltage on request on VBUS now
       memcpy(&voltage, &pconfig->payload[1], 2);
-      setting = stusb_set_vbus(voltage);
-      canape_send_reply(&hCAN, CANAPE_FMSG_SVLT, (uint8_t*) &setting, 1);
+      stusb_set_vbus(voltage);
       break;
     case CANAPE_FMSG_GRDO:
       // update current profile negotiated
@@ -91,9 +91,9 @@ void canape_init(void) {
   // populate local nvm sectors from stusb4500
   stusb_nvm_read();
 
-  // check comms capable set, set if needs setting
-  if (stusb_nvm_comms_capable(1)) {
-    stusb_nvm_flash();
+  // use GPIO ctrl as a NVM flag for whether set to default or not since this is not written by application and factory default is 1
+  if (stusb_nvm_config_gpio(0)) { // software GPIO control
+    stusb_nvm_flash_defaults();
     stusb_soft_reset();
     led_run_sequence(&hLED, nvm_set_seq, 20);
   }
@@ -126,3 +126,5 @@ static bool canape_send_reply(can_data_t *hcan, uint8_t msg, uint8_t *data, size
 
   return ret;
 }
+
+#endif

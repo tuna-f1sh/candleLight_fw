@@ -97,12 +97,14 @@ HAL_StatusTypeDef stusb_soft_reset(void);
 #define SECTOR_5  0x20
 
 void stusb_nvm_flash(void);
+void stusb_nvm_flash_defaults(void);
 void stusb_nvm_read(void);
-uint8_t stusb_nvm_power_above5v_only(uint8_t value);
-void stusb_nvm_set_pdo_number(uint8_t value);
 void stusb_nvm_set_voltage(uint8_t pdo_numb, float voltage);
-void stusb_nvm_set_curent(uint8_t pdo_numb, float current);
+void stusb_nvm_set_current(uint8_t pdo_numb, float current);
+uint8_t stusb_nvm_power_above5v_only(uint8_t value);
+uint8_t stusb_nvm_set_pdo_number(uint8_t value);
 uint8_t stusb_nvm_comms_capable(uint8_t value);
-void stusb_nvm_config_powerok(uint8_t value);
+uint8_t stusb_nvm_config_powerok(uint8_t value);
+uint8_t stusb_nvm_config_gpio(uint8_t value);
 
 #endif

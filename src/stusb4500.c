@@ -5,6 +5,8 @@
  * Support added by J.Whittington 2020
  *
  */
+
+#include <string.h>
 #include "stusb4500.h"
 #include "canape.h"
 
@@ -78,7 +80,7 @@ HAL_StatusTypeDef stusb_set_vbus(uint16_t voltage_mv) {
   }
 
   ret += stusb_set_valid_pdo(2);
-  ret += stusb_update_pdo(1, 5000, CANAPE_MAX_I);
+  ret += stusb_update_pdo(1, 5000, 500);
   ret += stusb_update_pdo(2, voltage_mv, CANAPE_MAX_I);
   ret += stusb_soft_reset();
 
@@ -87,7 +89,7 @@ HAL_StatusTypeDef stusb_set_vbus(uint16_t voltage_mv) {
 
 HAL_StatusTypeDef stusb_set_vbus_en(void) {
   // enable VBUS by setting PDO to 1: standard USB
-  stusb_update_pdo(1, 5000, CANAPE_MAX_I);
+  stusb_update_pdo(1, 5000, 500);
   return stusb_set_valid_pdo(1);
 }
 
@@ -99,12 +101,14 @@ HAL_StatusTypeDef stusb_soft_reset(void) {
 
 // NVM functions
 
-// Default
-static uint8_t sector[5][8] = {{0x00,0x00,0xB0,0xAA,0x00,0x45,0x00,0x00},
-                               {0x10,0x40,0x9C,0x1C,0xFF,0x01,0x3C,0xDF},
-                               {0x02,0x40,0x0F,0x00,0x32,0x00,0xFC,0xF1},
-                               {0x00,0x19,0x56,0xAF,0xF5,0x35,0x5F,0x00},
-                               {0x00,0x4B,0x90,0x21,0x43,0x00,0x40,0xFB}};
+// Default 2 profiles both 5 V / 1 A, USB comms capable, POK LED profile 2 and VBUS only with valid profile
+static const uint8_t defaults[5][8] = {{0x00,0x00,0xB0,0xAA,0x00,0x45,0x00,0x00},
+                                       {0x00,0x40,0x9C,0x1C,0xF0,0x01,0x00,0xDF},
+                                       {0x02,0x40,0x0F,0x00,0x32,0x00,0xFC,0xF1},
+                                       {0x00,0x19,0x15,0xAF,0xF3,0x35,0x5F,0x00},
+                                       {0x00,0x19,0x90,0x21,0x43,0x00,0x48,0xFB}};
+static uint8_t sector[5][8];
+
 
 static void CUST_EnterWriteMode(unsigned char ErasedSector);
 static void CUST_WriteSector(char SectorNum, unsigned char *SectorData);
@@ -163,6 +167,11 @@ void stusb_nvm_read(void) {
   CUST_ExitTestMode();
 }
 
+void stusb_nvm_flash_defaults(void) {
+  memcpy(&sector, &defaults, sizeof(defaults));
+  stusb_nvm_flash();
+}
+
 uint8_t stusb_nvm_power_above5v_only(uint8_t value) {
   if(value != 0) value = 1;
 
@@ -200,7 +209,7 @@ void stusb_nvm_set_voltage(uint8_t pdo_numb, float voltage) {
   }
 }
 
-void stusb_nvm_set_curent(uint8_t pdo_numb, float current) {
+void stusb_nvm_set_current(uint8_t pdo_numb, float current) {
   /*Convert current from float to 4-bit value
     -current from 0.5-3.0A is set in 0.25A steps
     -current from 3.0-5.0A is set in 0.50A steps
@@ -229,12 +238,17 @@ void stusb_nvm_set_curent(uint8_t pdo_numb, float current) {
   }
 }
 
-void stusb_nvm_set_pdo_number(uint8_t value) {
+uint8_t stusb_nvm_set_pdo_number(uint8_t value) {
   if(value > 3) value = 3;
 
   //load PDO number (sector 3, byte 2, bits 2:3)
-  sector[3][2] &= 0xF9;
-  sector[3][2] |= (value<<1);
+  if (((sector[3][2] >> 2) & 3) != value) {
+    sector[3][2] &= 0xF9;
+    sector[3][2] |= (value<<1);
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 
@@ -251,13 +265,31 @@ uint8_t stusb_nvm_comms_capable(uint8_t value) {
   }
 }
 
-void stusb_nvm_config_powerok(uint8_t value) {
+uint8_t stusb_nvm_config_powerok(uint8_t value) {
   if(value < 2) value = 0;
   else if(value > 3) value = 3;
 
   //load POWER_OK_CFG (sector 4, byte 4, bits 5:6)
-  sector[4][4] &= 0x9F; //clear bit 3
-  sector[4][4] |= value<<5;
+  if (((sector[4][4] >> 5) & 3) != value) {
+    sector[4][4] &= 0x9F; //clear bit 3
+    sector[4][4] |= value<<5;
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+uint8_t stusb_nvm_config_gpio(uint8_t value) {
+  if(value > 3) value = 3;
+
+  //load GPIO_CFG (sector 1, byte 0, bits 4:5)
+  if (((sector[1][0] >> 4) & 3) != value) {
+    sector[1][0] &= 0xCF; //clear bits 4:5
+    sector[1][0] |= value<<4;
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 static void CUST_EnterWriteMode(unsigned char ErasedSector) {
