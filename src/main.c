@@ -42,7 +42,7 @@ THE SOFTWARE.
 #include "timer.h"
 #include "flash.h"
 #include "i2c.h"
-#include "canape.h"
+#include "entree.h"
 
 void HAL_MspInit(void);
 void SystemClock_Config(void);
@@ -88,8 +88,8 @@ int main(void)
 	can_init(&hCAN, CAN);
 	can_disable(&hCAN);
 
-#if BOARD == BOARD_canape
-  canape_init();
+#if BOARD == BOARD_entree
+  entree_init();
 #endif
 
 	q_frame_pool = queue_create(CAN_QUEUE_SIZE);
@@ -114,15 +114,15 @@ int main(void)
 	while (1) {
 		struct gs_host_frame *frame = queue_pop_front(q_from_host);
 		if (frame != 0) { // send can message from host
-		  // process canape internal message if enabled
-#if BOARD == BOARD_canape
-      struct canape_config_t config;
-		  if ((HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) || CANAPE_IDS_ALWAYS) &&
-            frame->can_id == CANAPE_CONFIG_ID &&
+		  // process entree internal message if enabled
+#if BOARD == BOARD_entree
+      struct entree_config_t config;
+		  if ((HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) || ENTREE_IDS_ALWAYS) &&
+            frame->can_id == ENTREE_CONFIG_ID &&
             frame->can_dlc == sizeof(config) &&
-            frame->data[7] == CANAPE_KEY) {
+            frame->data[7] == ENTREE_KEY) {
         memcpy(&config, frame->data, sizeof(config));
-        process_canape_config(&config);
+        process_entree_config(&config);
       } else if (can_send(&hCAN, frame)) {
 #else
       if (can_send(&hCAN, frame)) {

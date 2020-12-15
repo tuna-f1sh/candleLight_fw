@@ -40,7 +40,7 @@ THE SOFTWARE.
 #define BOARD_usb2can     4
 #define BOARD_canalyze    5
 #define BOARD_cannette    6
-#define BOARD_canape      7
+#define BOARD_entree      7
 
 #if BOARD == BOARD_candleLight
 	#define USBD_PRODUCT_STRING_FS		(uint8_t*) "candleLight USB to CAN adapter"
@@ -161,10 +161,10 @@ THE SOFTWARE.
 
 	#define DCDCEN_Port GPIOC
 	#define DCDCEN_Pin GPIO_PIN_15		/* activate DCDC converter, active high */
-#elif BOARD == BOARD_canape
-	#define USBD_PRODUCT_STRING_FS			(uint8_t*) "canape gs_usb"
+#elif BOARD == BOARD_entree
+	#define USBD_PRODUCT_STRING_FS			(uint8_t*) "Entree gs_usb"
 	#define USBD_MANUFACTURER_STRING		(uint8_t*) "JBR Engineering"
-	#define DFU_INTERFACE_STRING_FS			(uint8_t*) "canape firmware upgrade interface"
+	#define DFU_INTERFACE_STRING_FS			(uint8_t*) "Entree firmware upgrade interface"
 
 	#define LED1_GPIO_Port GPIOB
 	#define LED1_Pin GPIO_PIN_0	/* green */

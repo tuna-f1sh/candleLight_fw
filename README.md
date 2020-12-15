@@ -8,20 +8,20 @@ This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, nota
 - USB2CAN: https://github.com/roboterclubaachen/usb2can (STM32F042x6)
 - CANAlyze: https://kkuchera.github.io/canalyze/ (STM32F042x6)
 - VulCAN Gen1: https://shop.copperforge.cc/products/ac41 (STM32F042x6)
-- Canapé: https://github.com/tuna-f1sh/canape (STM32F042x6)
+- Entreé: https://github.com/tuna-f1sh/entree (STM32F042x6)
 
 Of important note is that the common STM32F103 will NOT work with this firmware because its hardware cannot use both USB and CAN simultaneously.
 
 This implements the interface of the mainline linux gs_usb kernel module and
 works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.
 
-# Canapé Fork
+# Entreé Fork
 
 ## USB Power Delivery (USB-PD)
 
 The on-board USB-C controller (STUSB4500) is configured for 5 V / 1A power delivery by default (PDO 2). One can configure the controller using the below CAN bus commands when using the [**candleLight_fw**](https://github.com/tuna-f1sh/candleLight_fw) fork and with the [internal CAN IDs switch](#dip-switches) set.
 
-These commands are scrapped from the recieved gs_usb Tx commands and will not be forwarded to the CAN bus when the switch is set. Ensure the DLC is 8 bytes, the ID is correct and byte seven is the Canapé key '0xAF'.
+These commands are scrapped from the recieved gs_usb Tx commands and will not be forwarded to the CAN bus when the switch is set. Ensure the DLC is 8 bytes, the ID is correct and byte seven is the Entreé key '0xAF'.
 
 The commands are also scrapped from the `can_recieved` callback but for this to work a USB connection must be enumerated and CAN bus setup in order for the CAN perphieral to be enabled with the correct bit-timing. In the future I may save the previous bit-timing to flash in order to enable this without USB connection.
 
@@ -45,8 +45,8 @@ The commands are also scrapped from the `can_recieved` callback but for this to 
 
 ## Feature Road Map
 
-- Add flash write of bit-timing when set via gs_usb for retrival and CAN enable when no USB connected and Canapé CAN ID config enabled.
-- Add gs_usb support for Canapé config commands and driver patch rather than scrapping the CAN messages.
+- Add flash write of bit-timing when set via gs_usb for retrival and CAN enable when no USB connected and Entreé CAN ID config enabled.
+- Add gs_usb support for Entreé config commands and driver patch rather than scrapping the CAN messages.
 
 # Known issues
 
@@ -72,7 +72,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/gcc-arm-none-eabi-8-2019-q3-update.cmak
 # cmake-gui ..
 # don't forget to specify the cmake toolchain file before configuring.
 
-make canalyze_fw # one of candleLight_fw / usb2can_fw / cantact_fw / canalyze_fw / canable_fw / canape_fw
+make canalyze_fw # one of candleLight_fw / usb2can_fw / cantact_fw / canalyze_fw / canable_fw / entree_fw
 # alternately, each board target may be disabled as cmake options
 
 ```

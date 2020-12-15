@@ -8,7 +8,7 @@
 
 #include <string.h>
 #include "stusb4500.h"
-#include "canape.h"
+#include "entree.h"
 
 USB_PD_SNK_PDO_TypeDef pdo_profile[3];
 extern I2C_HandleTypeDef hi2c1;
@@ -81,7 +81,7 @@ HAL_StatusTypeDef stusb_set_vbus(uint16_t voltage_mv) {
 
   ret += stusb_set_valid_pdo(2);
   ret += stusb_update_pdo(1, 5000, 500);
-  ret += stusb_update_pdo(2, voltage_mv, CANAPE_MAX_I);
+  ret += stusb_update_pdo(2, voltage_mv, ENTREE_MAX_I);
   ret += stusb_soft_reset();
 
   return ret;

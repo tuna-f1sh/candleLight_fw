@@ -44,7 +44,7 @@ set(
         include/timer.h src/timer.c
         include/util.h src/util.c
         include/stusb4500.h src/stusb4500.c
-        include/canape.h src/canape.c
+        include/entree.h src/entree.c
 
         src/main.c
         src/interrupts.c
@@ -121,7 +121,7 @@ endfunction()
 
 ########## generate list of targets.
 # the "_fw" part is appended automatically
-set(TGT042_LIST "cantact" "canalyze" "canable" "usb2can" "cannette" "canape")
+set(TGT042_LIST "cantact" "canalyze" "canable" "usb2can" "cannette" "entree")
 set(TGT072_LIST "candleLight")
 
 

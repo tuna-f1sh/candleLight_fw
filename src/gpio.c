@@ -90,7 +90,7 @@ void gpio_init()
 	HAL_GPIO_Init(nSI86EN_Port, &GPIO_InitStruct);	//enable si86
 #endif // BOARD_cannette
 
-#if BOARD == BOARD_canape
+#if BOARD == BOARD_entree
 	GPIO_InitStruct.Pin = SET_IDS_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;

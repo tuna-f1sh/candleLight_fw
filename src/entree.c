@@ -1,29 +1,29 @@
 #include <string.h>
 #include "config.h"
 #include "led.h"
-#include "canape.h"
+#include "entree.h"
 #include "stusb4500.h"
 #include "can.h"
 
-#if BOARD == BOARD_canape
+#if BOARD == BOARD_entree
 extern led_data_t hLED;
 extern can_data_t hCAN;
 static STUSB_GEN1S_RDO_REG_STATUS_RegTypeDef srdo;
 
-static bool canape_send_reply(can_data_t *hcan, uint8_t msg, uint8_t *data, size_t len);
+static bool entree_send_reply(can_data_t *hcan, uint8_t msg, uint8_t *data, size_t len);
 static led_seq_step_t nvm_set_seq[] = {
   { .state = 0x03, .time_in_10ms = 10 },
   { .state = 0x00, .time_in_10ms = 10 }
 };
 
-void process_canape_config(struct canape_config_t *pconfig) {
+void process_entree_config(struct entree_config_t *pconfig) {
   bool nvm = pconfig->payload[0] == 0x01;
   uint8_t setting = pconfig->payload[1];
   uint16_t voltage;
   uint16_t current;
 
   switch (pconfig->msg) {
-    case CANAPE_FMSG_VBUS:
+    case ENTREE_FMSG_VBUS:
       if (nvm) {
         // setting is true to assert VBUS EN so invert and will return true is needs flash
         if (stusb_nvm_power_above5v_only(!(setting == 0x01))) {
@@ -40,7 +40,7 @@ void process_canape_config(struct canape_config_t *pconfig) {
         }
       }
       break;
-    case CANAPE_FMSG_SPDO:
+    case ENTREE_FMSG_SPDO:
       // set pdo profile config
       memcpy(&voltage, &pconfig->payload[2], 2);
       memcpy(&current, &pconfig->payload[4], 2);
@@ -58,7 +58,7 @@ void process_canape_config(struct canape_config_t *pconfig) {
         stusb_soft_reset();
       }
       break;
-    case CANAPE_FMSG_PDON:
+    case ENTREE_FMSG_PDON:
       // set number of profiles in use
       if (setting <= 3) {
         if (nvm) {
@@ -72,24 +72,24 @@ void process_canape_config(struct canape_config_t *pconfig) {
         }
       }
       break;
-    case CANAPE_FMSG_SVLT:
+    case ENTREE_FMSG_SVLT:
       // set voltage request on VBUS now
       memcpy(&voltage, &pconfig->payload[0], 2);
       stusb_set_vbus(voltage);
       break;
-    case CANAPE_FMSG_GRDO:
+    case ENTREE_FMSG_GRDO:
       // update current profile negotiated
       stusb_read_rdo(&srdo);
       // send on bus
       setting = srdo.b.Object_Pos;
-      canape_send_reply(&hCAN, CANAPE_FMSG_GRDO, (uint8_t*) &setting, 1);
+      entree_send_reply(&hCAN, ENTREE_FMSG_GRDO, (uint8_t*) &setting, 1);
       break;
     default:
       break;
   }
 }
 
-void canape_init(void) {
+void entree_init(void) {
   // populate local nvm sectors from stusb4500
   stusb_nvm_read();
 
@@ -110,15 +110,15 @@ void canape_init(void) {
   }
 }
 
-static bool canape_send_reply(can_data_t *hcan, uint8_t msg, uint8_t *data, size_t len) {
+static bool entree_send_reply(can_data_t *hcan, uint8_t msg, uint8_t *data, size_t len) {
   struct gs_host_frame frame;
   bool ret;
 
   if (len <= 6) {
-    frame.can_id = CANAPE_CONFIG_ID;
+    frame.can_id = ENTREE_CONFIG_ID;
     frame.can_dlc = len;
     frame.data[0] = msg;
-    frame.data[7] = CANAPE_KEY;
+    frame.data[7] = ENTREE_KEY;
     memcpy(&frame.data[1], data, len);
 
     ret = can_send(hcan, &frame);
