@@ -71,17 +71,16 @@ int main(void)
 	flash_load();
 
 	gpio_init();
-  MX_I2C1_Init();
 
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, LED1_Active_High, LED2_GPIO_Port, LED2_Pin, LED2_Active_High);
 
 	/* nice wake-up pattern */
-    for(uint8_t i=0; i<10; i++)
-    {
-        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-        HAL_Delay(50);
-        HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    }
+  for(uint8_t i=0; i<10; i++)
+  {
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    HAL_Delay(50);
+    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+  }
 
 	led_set_mode(&hLED, led_mode_off);
 	timer_init();

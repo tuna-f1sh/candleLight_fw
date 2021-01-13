@@ -99,6 +99,8 @@ void process_entree_config(struct entree_config_t *pconfig) {
 }
 
 void entree_init(void) {
+  // init i2c
+  MX_I2C1_Init();
   // populate local nvm sectors from stusb4500
   stusb_nvm_read();
 

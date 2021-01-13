@@ -46,7 +46,7 @@ typedef struct {
 	uint8_t phase_seg2;
 	uint8_t sjw;
 	uint16_t brp;
-	uint16_t reserved; // make it 64 bit struct
+	uint16_t reserved; // make it 64 bit aligned struct
 } can_settings_t;
 
 void can_init(can_data_t *hcan, CAN_TypeDef *instance);

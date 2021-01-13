@@ -1,7 +1,8 @@
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 32K
+  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 30K
   RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 6K
+  DATA (xrw) : ORIGIN = 0x80077FF, LENGTH = 2K /* user data */
 }
 
 /*
@@ -207,6 +208,12 @@ SECTIONS
         *(.glue_7t)
 
     } >FLASH
+
+    .user_data :
+    { . = ALIGN(4);
+      *(.user_data)
+      . = ALIGN(4);
+   } >DATA
 
 	/* ARM magic sections */
 	.ARM.extab : ALIGN(4)
