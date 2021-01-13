@@ -63,6 +63,7 @@ uint32_t received_count=0;
 int main(void)
 {
 	uint32_t last_can_error_status = 0;
+	can_settings_t flash_settings;
 
 	HAL_Init();
 	SystemClock_Config();
@@ -86,7 +87,13 @@ int main(void)
 	timer_init();
 
 	can_init(&hCAN, CAN);
-	can_disable(&hCAN);
+	// load settings from flash if previously saved
+	if (flash_get_can_settings(&flash_settings)) {
+	  can_set_bittiming(&hCAN, flash_settings.brp, flash_settings.phase_seg1, flash_settings.phase_seg2, flash_settings.sjw);
+	  can_enable(&hCAN, 0, 0, 0);
+  } else {
+    can_disable(&hCAN);
+  }
 
 #if BOARD == BOARD_entree
   entree_init();

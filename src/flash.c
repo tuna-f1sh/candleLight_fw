@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 
 #include "flash.h"
+#include "can.h"
 #include <string.h>
 #include "stm32f0xx_hal_flash.h"
 
@@ -33,6 +34,10 @@ THE SOFTWARE.
 
 typedef struct {
 	uint32_t user_id[NUM_CHANNEL];
+	union {
+    can_settings_t settings;
+    uint64_t data;
+  } can_settings;
 } flash_data_t;
 
 static flash_data_t flash_data_ram;
@@ -67,6 +72,29 @@ uint32_t flash_get_user_id(uint8_t channel)
 	}
 }
 
+bool flash_get_can_settings(can_settings_t *can_settings) {
+  if (flash_data_ram.can_settings.settings.flag == CAN_SETTINGS_SAVED) {
+    memcpy(can_settings, &flash_data_ram.can_settings, sizeof(can_settings_t));
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+void flash_set_can_settings(can_settings_t can_settings) {
+  memcpy(&flash_data_ram.can_settings, &can_settings, sizeof(can_settings_t));
+}
+
+bool flash_write_can_settings(uint8_t flag) {
+  if (flash_data_ram.can_settings.settings.flag != flag) {
+    flash_data_ram.can_settings.settings.flag = flag;
+    flash_flush();
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 void flash_flush()
 {
 	FLASH_EraseInitTypeDef erase_pages;
@@ -81,6 +109,7 @@ void flash_flush()
 	HAL_FLASHEx_Erase(&erase_pages, &error);
 	if (error==0xFFFFFFFF) { // erase finished successfully
 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)&flash_data_rom.user_id[0], flash_data_ram.user_id[0]);
+		HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, (uint32_t)&flash_data_rom.can_settings.data, flash_data_ram.can_settings.data);
 	}
 	HAL_FLASH_Lock();
 }

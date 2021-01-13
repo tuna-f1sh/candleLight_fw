@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "can.h"
 #include "config.h"
 #include "entree.h"
+#include "flash.h"
 
 void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 {
@@ -50,6 +51,8 @@ void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 
 bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw)
 {
+  can_settings_t flash_settings;
+
 	if ( (brp>0) && (brp<=1024)
 	  && (phase_seg1>0) && (phase_seg1<=16)
 	  && (phase_seg2>0) && (phase_seg2<=8)
@@ -59,6 +62,12 @@ bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8
 		hcan->phase_seg1 = phase_seg1;
 		hcan->phase_seg2 = phase_seg2;
 		hcan->sjw = sjw;
+		// copy to flash ram (only writes if entree can message request received)
+		flash_settings.brp = brp & 0x3FF;
+		flash_settings.phase_seg1 = phase_seg1;
+		flash_settings.phase_seg2 = phase_seg2;
+		flash_settings.sjw = sjw;
+		flash_set_can_settings(flash_settings);
 		return true;
 	} else {
 		return false;
