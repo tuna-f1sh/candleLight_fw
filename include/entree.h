@@ -13,7 +13,7 @@
 #define ENTREE_FMSG_GRDO             0x05
 
 #define ENTREE_MAX_I                 1000 // max current (mA) hardware supports
-#define ENTREE_IDS_ALWAYS            1
+#define ENTREE_IDS_ALWAYS            false
 
 struct entree_config_t {
   uint8_t msg;

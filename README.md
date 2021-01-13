@@ -1,5 +1,4 @@
 # candleLight_gsusb
-[![Build Status](https://travis-ci.org/candle-usb/candleLight_fw.svg?branch=master)](https://travis-ci.org/candle-usb/candleLight_fw)
 
 This is firmware for certain STM32F042x/STM32F072xB-based USB-CAN adapters, notably:
 - candleLight: https://github.com/HubertD/candleLight (STM32F072xB)
@@ -21,10 +20,9 @@ works out-of-the-box with linux distros packaging this module, e.g. Ubuntu.
 
 The on-board USB-C controller (STUSB4500) is configured for 5 V / 1A power delivery by default (PDO 2). One can configure the controller using the below CAN bus commands when using the [**candleLight_fw**](https://github.com/tuna-f1sh/candleLight_fw) fork and with the [internal CAN IDs switch](#dip-switches) set.
 
-These commands are scrapped from the recieved gs_usb Tx commands and will not be forwarded to the CAN bus when the switch is set. Ensure the DLC is 8 bytes, the ID is correct and byte seven is the Entreé key '0xAF'.
+These commands are scraped from the recieved gs_usb Tx commands and will not be forwarded to the CAN bus when the switch is set. Ensure the DLC is 8 bytes, the ID is correct and byte seven is the Entreé key '0xAF'.
 
-The commands are also scrapped from the `can_recieved` callback but for this to work a USB connection must be enumerated and CAN bus setup in order for the CAN perphieral to be enabled with the correct bit-timing. In the future I may save the previous bit-timing to flash in order to enable this without USB connection.
-
+The commands are also scraped from the `can_recieved` callback. For this to work however, a USB connection must be enumerated and CAN bus setup in order for the CAN perphieral to be enabled with the correct bit-timing. In the future I may save the previous bit-timing to flash in order to enable this without USB connection.
 
 | ID    | Cmd          | 0    | 1          | 2          | 3         | 4         | 5         | 6         | 7    | Action                                                                  |
 |-------|--------------|------|------------|------------|-----------|-----------|-----------|-----------|------|-------------------------------------------------------------------------|
@@ -40,8 +38,18 @@ The commands are also scrapped from the `can_recieved` callback but for this to 
 * The NVM VBUS enable is the only concrete way to force VBUS; the volatile method attempts to enumerate a 5 V power delivery profile but this may not work with non-compliant devices.
 * When profile 2 is enumerated, the orange 'PD-OK' will illuminate. This can be changed to profile 3 with the solder link on the underside of the board.
 * Refer to the [STUSB4500 programming guide](https://www.st.com/resource/en/user_manual/dm00664189-the-stusb4500-software-programing-guide-stmicroelectronics.pdf) for more information.
-* **Excerise caution** configuring these and ideally use a USB-PD checker/multimeter to verify your configuration prior to powering a device!
+* **Excerise caution** configuring these and use a USB-PD checker/multimeter to verify your configuration prior to powering a device!
 
+### Examples
+
+Using SocketCAN `cansend` command.
+
+```
+# enable vbus always (regardless of USB-PD profile enumeration)
+cansend can0 010#01010100000000AF
+# set PD2 in NVM to 12000 mV / 1000 mA
+cansend can0 010#020102E02EE803AF
+```
 
 ## Feature Road Map
 
