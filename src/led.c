@@ -25,9 +25,12 @@ THE SOFTWARE.
 */
 
 #include "led.h"
+#include "can.h"
 #include <string.h>
 #include "stm32f0xx_hal.h"
 #include "stm32f0xx_hal_gpio.h"
+
+extern can_data_t hCAN;
 
 void led_init(
 	led_data_t *leds,
@@ -124,6 +127,8 @@ static void led_update_sequence(led_data_t *leds)
 
 			} else {
 				leds->sequence = NULL;
+				// return to previous
+        led_set_mode(leds, can_is_enabled(&hCAN) ? led_mode_normal : led_mode_off);
 			}
 		}
 	}
