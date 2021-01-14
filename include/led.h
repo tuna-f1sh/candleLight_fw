@@ -32,6 +32,7 @@ THE SOFTWARE.
 typedef enum {
 	led_mode_off,
 	led_mode_normal,
+	led_mode_ghost,
 	led_mode_warn,
 	led_mode_error,
 	led_mode_sequence

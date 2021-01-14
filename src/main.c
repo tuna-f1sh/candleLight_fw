@@ -90,6 +90,8 @@ int main(void)
 	if (flash_get_can_settings(&flash_settings)) {
 	  can_set_bittiming(&hCAN, flash_settings.brp, flash_settings.phase_seg1, flash_settings.phase_seg2, flash_settings.sjw);
 	  can_enable(&hCAN, 0, 0, 0);
+	  // no green just RX led
+    led_set_mode(&hLED, led_mode_ghost);
   } else {
     can_disable(&hCAN);
   }
@@ -107,7 +109,7 @@ int main(void)
 		queue_push_back(q_frame_pool, &msgbuf[i]);
 	}
 
-	USBD_Init(&hUSB, &FS_Desc, DEVICE_FS);
+	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host, &hLED);
 	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
@@ -136,7 +138,7 @@ int main(void)
 				// Echo sent frame back to host
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
-
+				
 				led_indicate_trx(&hLED, led_2);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
@@ -259,7 +261,7 @@ void send_to_host()
 
 	if(!frame)
 	  return;
-
+	
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
 		queue_push_back(q_frame_pool, frame);
 	} else {

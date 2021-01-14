@@ -174,7 +174,7 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 
 		can->RF0R |= CAN_RF0R_RFOM0; // release FIFO
 
-    // is the Entree config ID enable? // TODO this won't run unless CAN bus has been configured and enabled by USB comms.
+    // is the Entree config ID enable? this won't run unless CAN bus has been configured from flash
 #if BOARD == BOARD_entree
     if (HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) || ENTREE_IDS_ALWAYS) {
       struct entree_config_t config;

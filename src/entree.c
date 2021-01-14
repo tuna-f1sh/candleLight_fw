@@ -5,6 +5,7 @@
 #include "stusb4500.h"
 #include "can.h"
 #include "flash.h"
+#include "i2c.h"
 
 #if BOARD == BOARD_entree
 extern led_data_t hLED;

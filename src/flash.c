@@ -82,6 +82,8 @@ bool flash_get_can_settings(can_settings_t *can_settings) {
 }
 
 void flash_set_can_settings(can_settings_t can_settings) {
+  // keep flag from ram
+  can_settings.flag = flash_data_ram.can_settings.settings.flag;
   memcpy(&flash_data_ram.can_settings, &can_settings, sizeof(can_settings_t));
 }
 
@@ -100,16 +102,17 @@ void flash_flush()
 	FLASH_EraseInitTypeDef erase_pages;
 	erase_pages.PageAddress = (uint32_t)&flash_data_rom;
 	erase_pages.NbPages = 1;
-	erase_pages.TypeErase = TYPEERASE_PAGES;
-
-	uint32_t error;
+	erase_pages.TypeErase = FLASH_TYPEERASE_PAGES;
 
 	HAL_FLASH_Unlock();
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_SR_PGERR);
+
+	uint32_t error = 0;
 	HAL_FLASHEx_Erase(&erase_pages, &error);
 	if (error==0xFFFFFFFF) { // erase finished successfully
 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)&flash_data_rom.user_id[0], flash_data_ram.user_id[0]);
 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, (uint32_t)&flash_data_rom.can_settings.data, flash_data_ram.can_settings.data);
 	}
+	
 	HAL_FLASH_Lock();
 }
