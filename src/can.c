@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "can.h"
 #include "config.h"
 #include "entree.h"
+#include "flash.h"
 
 void can_init(can_data_t *hcan, CAN_TypeDef *instance)
 {
@@ -59,6 +60,15 @@ bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8
 		hcan->phase_seg1 = phase_seg1;
 		hcan->phase_seg2 = phase_seg2;
 		hcan->sjw = sjw;
+#if BOARD == BOARD_entree
+    can_settings_t flash_settings;
+		// copy to flash ram (only writes if entree can message request received)
+		flash_settings.brp = brp & 0x3FF;
+		flash_settings.phase_seg1 = phase_seg1;
+		flash_settings.phase_seg2 = phase_seg2;
+		flash_settings.sjw = sjw;
+		flash_set_can_settings(flash_settings);
+#endif
 		return true;
 	} else {
 		return false;
@@ -164,7 +174,7 @@ bool can_receive(can_data_t *hcan, struct gs_host_frame *rx_frame)
 
 		can->RF0R |= CAN_RF0R_RFOM0; // release FIFO
 
-    // is the Entree config ID enable? // TODO this won't run unless CAN bus has been configured and enabled by USB comms.
+    // is the Entree config ID enable? this won't run unless CAN bus has been configured from flash
 #if BOARD == BOARD_entree
     if (HAL_GPIO_ReadPin(SET_IDS_GPIO_Port, SET_IDS_Pin) || ENTREE_IDS_ALWAYS) {
       struct entree_config_t config;

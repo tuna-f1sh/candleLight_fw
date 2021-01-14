@@ -63,6 +63,7 @@ uint32_t received_count=0;
 int main(void)
 {
 	uint32_t last_can_error_status = 0;
+	can_settings_t flash_settings;
 
 	HAL_Init();
 	SystemClock_Config();
@@ -70,23 +71,30 @@ int main(void)
 	flash_load();
 
 	gpio_init();
-  MX_I2C1_Init();
 
 	led_init(&hLED, LED1_GPIO_Port, LED1_Pin, LED1_Active_High, LED2_GPIO_Port, LED2_Pin, LED2_Active_High);
 
 	/* nice wake-up pattern */
-    for(uint8_t i=0; i<10; i++)
-    {
-        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-        HAL_Delay(50);
-        HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    }
+  for(uint8_t i=0; i<10; i++)
+  {
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    HAL_Delay(50);
+    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+  }
 
 	led_set_mode(&hLED, led_mode_off);
 	timer_init();
 
 	can_init(&hCAN, CAN);
-	can_disable(&hCAN);
+	// load settings from flash if previously saved
+	if (flash_get_can_settings(&flash_settings)) {
+	  can_set_bittiming(&hCAN, flash_settings.brp, flash_settings.phase_seg1, flash_settings.phase_seg2, flash_settings.sjw);
+	  can_enable(&hCAN, 0, 0, 0);
+	  // no green just RX led
+    led_set_mode(&hLED, led_mode_ghost);
+  } else {
+    can_disable(&hCAN);
+  }
 
 #if BOARD == BOARD_entree
   entree_init();
@@ -101,7 +109,7 @@ int main(void)
 		queue_push_back(q_frame_pool, &msgbuf[i]);
 	}
 
-	USBD_Init(&hUSB, &FS_Desc, DEVICE_FS);
+	USBD_Init(&hUSB, (USBD_DescriptorsTypeDef*)&FS_Desc, DEVICE_FS);
 	USBD_RegisterClass(&hUSB, &USBD_GS_CAN);
 	USBD_GS_CAN_Init(&hUSB, q_frame_pool, q_from_host, &hLED);
 	USBD_GS_CAN_SetChannel(&hUSB, 0, &hCAN);
@@ -130,7 +138,7 @@ int main(void)
 				// Echo sent frame back to host
 				frame->timestamp_us = timer_get();
 				send_to_host_or_enqueue(frame);
-
+				
 				led_indicate_trx(&hLED, led_2);
 			} else {
 				queue_push_front(q_from_host, frame); // retry later
@@ -253,7 +261,7 @@ void send_to_host()
 
 	if(!frame)
 	  return;
-
+	
 	if (USBD_GS_CAN_SendFrame(&hUSB, frame) == USBD_OK) {
 		queue_push_back(q_frame_pool, frame);
 	} else {

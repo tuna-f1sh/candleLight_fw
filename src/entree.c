@@ -4,6 +4,8 @@
 #include "entree.h"
 #include "stusb4500.h"
 #include "can.h"
+#include "flash.h"
+#include "i2c.h"
 
 #if BOARD == BOARD_entree
 extern led_data_t hLED;
@@ -84,12 +86,22 @@ void process_entree_config(struct entree_config_t *pconfig) {
       setting = srdo.b.Object_Pos;
       entree_send_reply(&hCAN, ENTREE_FMSG_GRDO, (uint8_t*) &setting, 1);
       break;
+    case ENTREE_FMSG_SAVE_CAN:
+      // will blink if flash is writen due to setting change
+      if (flash_write_can_settings(nvm ? CAN_SETTINGS_SAVED : CAN_SETTINGS_EMPTY)) {
+        led_run_sequence(&hLED, nvm_set_seq, 20);
+      } else {
+        led_run_sequence(&hLED, nvm_set_seq, 1);
+      }
+      break;
     default:
       break;
   }
 }
 
 void entree_init(void) {
+  // init i2c
+  MX_I2C1_Init();
   // populate local nvm sectors from stusb4500
   stusb_nvm_read();
 

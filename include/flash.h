@@ -26,10 +26,17 @@ THE SOFTWARE.
 
 #pragma once
 
+#include "can.h"
 #include <stdbool.h>
 #include <stdint.h>
+
+#define CAN_SETTINGS_EMPTY 0x00
+#define CAN_SETTINGS_SAVED 0xAF
 
 void flash_load();
 bool flash_set_user_id(uint8_t channel, uint32_t user_id);
 uint32_t flash_get_user_id(uint8_t channel);
 void flash_flush();
+bool flash_get_can_settings(can_settings_t *can_settings);
+void flash_set_can_settings(can_settings_t can_settings);
+bool flash_write_can_settings(uint8_t flag);

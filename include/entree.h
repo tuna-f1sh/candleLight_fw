@@ -11,6 +11,7 @@
 #define ENTREE_FMSG_PDON             0x03
 #define ENTREE_FMSG_SVLT             0x04
 #define ENTREE_FMSG_GRDO             0x05
+#define ENTREE_FMSG_SAVE_CAN         0x06
 
 #define ENTREE_MAX_I                 1000 // max current (mA) hardware supports
 #define ENTREE_IDS_ALWAYS            false

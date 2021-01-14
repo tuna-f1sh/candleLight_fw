@@ -39,6 +39,16 @@ typedef struct {
 	uint8_t sjw;
 } can_data_t;
 
+
+typedef struct {
+	uint8_t flag;
+	uint8_t phase_seg1;
+	uint8_t phase_seg2;
+	uint8_t sjw;
+	uint16_t brp;
+	uint16_t reserved; // make it 64 bit aligned struct
+} can_settings_t;
+
 void can_init(can_data_t *hcan, CAN_TypeDef *instance);
 bool can_set_bittiming(can_data_t *hcan, uint16_t brp, uint8_t phase_seg1, uint8_t phase_seg2, uint8_t sjw);
 void can_enable(can_data_t *hcan, bool loop_back, bool listen_only, bool one_shot);
