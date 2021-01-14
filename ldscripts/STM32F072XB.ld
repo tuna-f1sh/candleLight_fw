@@ -3,8 +3,9 @@ __HEAP_SIZE  = 10K;
 
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 128K
+  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 128K - 2K
   RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
+  DATA (xrw) : ORIGIN = 0x801f7ff, LENGTH = 2K
 }
 
 ENTRY(Reset_Handler)
@@ -68,6 +69,13 @@ SECTIONS
   } > FLASH
 
   __etext = ALIGN (4);
+
+  .user_data :
+  {
+    . = ALIGN(4);
+    *(.user_data)
+    . = ALIGN(4);
+  } > DATA
 
   .data : AT (__etext)
   {
