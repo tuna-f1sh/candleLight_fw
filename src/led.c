@@ -149,8 +149,8 @@ void led_update(led_data_t *leds)
 			break;
 
 		case led_mode_ghost:
-			led_set(&leds->led_state[0], false);
-			led_update_normal_mode(&leds->led_state[1]);
+			led_set(&leds->led_state[1], false);
+			led_update_normal_mode(&leds->led_state[0]);
 			break;
 
 		case led_mode_sequence:
