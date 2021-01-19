@@ -23,7 +23,9 @@ The on-board USB-C controller (STUSB4500) is configured for 5 V / 1A power deliv
 
 These commands are scraped from the recieved gs_usb Tx commands and will not be forwarded to the CAN bus when the switch is set. Ensure the DLC is 8 bytes, the ID is correct and byte seven is the Entreé key '0xAF'.
 
-The commands are also scraped from the `can_recieved` callback. For this to work however, a USB connection must be enumerated and CAN bus setup in order for the CAN perphieral to be enabled with the correct bit-timing. In the future I may save the previous bit-timing to flash in order to enable this without USB connection.
+### CAN Bus Side Control
+
+The commands are also scraped from the `can_recieved` callback. For this to work, initiate a connection over USB to setup the desired CAN bit timing then send the 'Save CAN' command (0x06) with the NVM byte set. The CAN bus will now be enabled on power up before USB enumeration. To revert this behaviour, send the same command with the NVM byte unset.
 
 | ID    | Cmd          | 0    | 1          | 2          | 3         | 4         | 5         | 6         | 7    | Action                                                                  |
 |-------|--------------|------|------------|------------|-----------|-----------|-----------|-----------|------|-------------------------------------------------------------------------|
@@ -32,6 +34,7 @@ The commands are also scraped from the `can_recieved` callback. For this to work
 | 0x010 | Set Profiles | 0x03 | NVM (bool) | PROFILES   | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Set number of profile in use (1-3)                                      |
 | 0x010 | Set VBUS     | 0x04 | VOLTAGE_L  | VOLTAGE_H  | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Request voltage on VBUS (volatile)                                      |
 | 0x010 | Get RDO      | 0x05 | 0x00       | 0x00       | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Get enumerated profile number                                           |
+| 0x010 | Save CAN     | 0x06 | NVM (bool) | 0x00       | 0x00      | 0x00      | 0x00      | 0x00      | 0xAF | Save current CAN bit timing to NVM and auto-enable at start-up for CAN bus side control |
 
 ### Usage Notes
 
@@ -50,11 +53,17 @@ Using SocketCAN `cansend` command.
 cansend can0 010#01010100000000AF
 # set PD2 in NVM to 12000 mV / 1000 mA
 cansend can0 010#020102E02EE803AF
+# save CAN bit timing for auto enable without USB
+cansend can0 010#06010000000000AF
+# disable auto CAN bus enable
+cansend can0 010#06000000000000AF
+# read current negotiated profile (returns on same ID B0: CMD, B1: PROFILE)
+cansend can0 010#05000000000000AF
 ```
 
 ## Feature Road Map
 
-- Add flash write of bit-timing when set via gs_usb for retrival and CAN enable when no USB connected and Entreé CAN ID config enabled.
+- ~~Add flash write of bit-timing when set via gs_usb for retrival and CAN enable when no USB connected and Entreé CAN ID config enabled.~~ Added as CMD 0x06
 - Add gs_usb support for Entreé config commands and driver patch rather than scrapping the CAN messages.
 
 # Known issues

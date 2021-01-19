@@ -56,6 +56,8 @@ typedef struct {
 	uint32_t out_requests_fail;
 	uint32_t out_requests_no_buf;
 
+	bool connected;
+
 	led_data_t *leds;
 	bool dfu_detach_requested;
 
@@ -299,6 +301,7 @@ uint8_t USBD_GS_CAN_Init(USBD_HandleTypeDef *pdev, queue_t *q_frame_pool, queue_
 		hcan->leds = leds;
 		pdev->pClassData = hcan;
 		hcan->from_host_buf = NULL;
+		hcan->connected = false;
 
 		ret = USBD_OK;
 	} else {
@@ -369,6 +372,7 @@ static uint8_t USBD_GS_CAN_EP0_RxReady(USBD_HandleTypeDef *pdev) {
 	uint32_t param_u32;
 
 	USBD_SetupReqTypedef *req = &hcan->last_setup_request;
+  hcan->connected = true;
 
     switch (req->bRequest) {
 
@@ -733,3 +737,8 @@ bool USBD_GS_CAN_DfuDetachRequested(USBD_HandleTypeDef *pdev)
 	return hcan->dfu_detach_requested;
 }
 
+bool USBD_GS_CAN_Connected(USBD_HandleTypeDef *pdev)
+{
+	USBD_GS_CAN_HandleTypeDef *hcan = (USBD_GS_CAN_HandleTypeDef*)pdev->pClassData;
+	return hcan->connected;
+}

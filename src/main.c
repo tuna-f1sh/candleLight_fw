@@ -145,49 +145,64 @@ int main(void)
 			}
 		}
 
-		if (USBD_GS_CAN_TxReady(&hUSB)) {
-			send_to_host();
-		}
+    // entree boards need to check connected as CAN could be enabled without USB connnection and we don't want to involve USB stack if this is the case
+#if BOARD == BOARD_entree
+    if (USBD_GS_CAN_Connected(&hUSB)) {
+#endif
+      if (USBD_GS_CAN_TxReady(&hUSB)) {
+        send_to_host();
+      }
 
-		if (can_is_rx_pending(&hCAN)) {
-			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
-			if (frame != 0)
-			{
-				if (can_receive(&hCAN, frame)) {
-					received_count++;
+      if (can_is_rx_pending(&hCAN)) {
+        struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+        if (frame != 0)
+        {
+          if (can_receive(&hCAN, frame)) {
+            received_count++;
 
-					frame->timestamp_us = timer_get();
-					frame->echo_id = 0xFFFFFFFF; // not a echo frame
-					frame->channel = 0;
-					frame->flags = 0;
-					frame->reserved = 0;
+            frame->timestamp_us = timer_get();
+            frame->echo_id = 0xFFFFFFFF; // not a echo frame
+            frame->channel = 0;
+            frame->flags = 0;
+            frame->reserved = 0;
 
-					send_to_host_or_enqueue(frame);
+            send_to_host_or_enqueue(frame);
 
-					led_indicate_trx(&hLED, led_1);
-				}
-				else
-				{
-					queue_push_back(q_frame_pool, frame);
-				}
-			}
-			// If there are frames to receive, don't report any error frames. The
-			// best we can localize the errors to is "after the last successfully
-			// received frame", so wait until we get there. LEC will hold some error
-			// to report even if multiple pass by.
-		} else {
-			uint32_t can_err = can_get_error_status(&hCAN);
-			struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
-			if (frame != 0) {
-				frame->timestamp_us = timer_get();
-				if (can_parse_error_status(can_err, last_can_error_status, &hCAN, frame)) {
-					send_to_host_or_enqueue(frame);
-					last_can_error_status = can_err;
-				} else {
-					queue_push_back(q_frame_pool, frame);
-				}
-			}
-		}
+            led_indicate_trx(&hLED, led_1);
+          }
+          else
+          {
+            queue_push_back(q_frame_pool, frame);
+          }
+        }
+        // If there are frames to receive, don't report any error frames. The
+        // best we can localize the errors to is "after the last successfully
+        // received frame", so wait until we get there. LEC will hold some error
+        // to report even if multiple pass by.
+      } else {
+        uint32_t can_err = can_get_error_status(&hCAN);
+        struct gs_host_frame *frame = queue_pop_front(q_frame_pool);
+        if (frame != 0) {
+          frame->timestamp_us = timer_get();
+          if (can_parse_error_status(can_err, last_can_error_status, &hCAN, frame)) {
+            send_to_host_or_enqueue(frame);
+            last_can_error_status = can_err;
+          } else {
+            queue_push_back(q_frame_pool, frame);
+          }
+        }
+      }
+    // recieve the CAN messages in ghost mode so that we can act on Entree IDs
+#if BOARD == BOARD_entree
+    } else {
+      if (can_is_rx_pending(&hCAN)) {
+        struct gs_host_frame frame;
+        if (can_receive(&hCAN, &frame)) {
+          led_indicate_trx(&hLED, led_1);
+        }
+      }
+    }
+#endif
 
 		led_update(&hLED);
 

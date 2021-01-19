@@ -83,7 +83,7 @@ void process_entree_config(struct entree_config_t *pconfig) {
       // update current profile negotiated
       stusb_read_rdo(&srdo);
       // send on bus
-      setting = srdo.b.Object_Pos;
+      setting = srdo.b.Object_Pos > 0 ? srdo.b.Object_Pos - 1 : 0; // minus 1 to match profile numbering
       entree_send_reply(&hCAN, ENTREE_FMSG_GRDO, (uint8_t*) &setting, 1);
       break;
     case ENTREE_FMSG_SAVE_CAN:
@@ -128,7 +128,7 @@ static bool entree_send_reply(can_data_t *hcan, uint8_t msg, uint8_t *data, size
 
   if (len <= 6) {
     frame.can_id = ENTREE_CONFIG_ID;
-    frame.can_dlc = len;
+    frame.can_dlc = len + 1; // one for command byte
     frame.data[0] = msg;
     frame.data[7] = ENTREE_KEY;
     memcpy(&frame.data[1], data, len);
