@@ -31,7 +31,7 @@ void process_entree_config(struct entree_config_t *pconfig) {
         if (stusb_nvm_power_above5v_only(!(setting == 0x01))) {
           stusb_nvm_flash();
           stusb_soft_reset();
-          led_run_sequence(&hLED, nvm_set_seq, 20);
+          led_run_sequence(&hLED, nvm_set_seq, 10);
         } else {
           led_run_sequence(&hLED, nvm_set_seq, 1);
         }
@@ -53,7 +53,7 @@ void process_entree_config(struct entree_config_t *pconfig) {
           stusb_nvm_set_current(setting, (float) current / 1000);
           stusb_nvm_flash();
           stusb_soft_reset();
-          led_run_sequence(&hLED, nvm_set_seq, 20);
+          led_run_sequence(&hLED, nvm_set_seq, 10);
         }
       } else {
         stusb_update_pdo(setting, voltage, current);
@@ -67,7 +67,7 @@ void process_entree_config(struct entree_config_t *pconfig) {
           stusb_nvm_set_pdo_number(setting);
           stusb_nvm_flash();
           stusb_soft_reset();
-          led_run_sequence(&hLED, nvm_set_seq, 20);
+          led_run_sequence(&hLED, nvm_set_seq, 10);
         } else {
           stusb_set_valid_pdo(setting);
           stusb_soft_reset();
@@ -89,7 +89,7 @@ void process_entree_config(struct entree_config_t *pconfig) {
     case ENTREE_FMSG_SAVE_CAN:
       // will blink if flash is writen due to setting change
       if (flash_write_can_settings(nvm ? CAN_SETTINGS_SAVED : CAN_SETTINGS_EMPTY)) {
-        led_run_sequence(&hLED, nvm_set_seq, 20);
+        led_run_sequence(&hLED, nvm_set_seq, 10);
       } else {
         led_run_sequence(&hLED, nvm_set_seq, 1);
       }
@@ -109,7 +109,7 @@ void entree_init(void) {
   if (stusb_nvm_config_gpio(0)) { // software GPIO control
     stusb_nvm_flash_defaults();
     stusb_soft_reset();
-    led_run_sequence(&hLED, nvm_set_seq, 20);
+    led_run_sequence(&hLED, nvm_set_seq, 10);
   }
 
   // get current power delivery profile
@@ -117,7 +117,7 @@ void entree_init(void) {
     if (stusb_nvm_power_above5v_only(!HAL_GPIO_ReadPin(VBUS_ALWAYS_GPIO_Port, VBUS_ALWAYS_Pin))) {
       stusb_nvm_flash();
       stusb_soft_reset();
-      led_run_sequence(&hLED, nvm_set_seq, 20);
+      led_run_sequence(&hLED, nvm_set_seq, 10);
     }
   }
 }
