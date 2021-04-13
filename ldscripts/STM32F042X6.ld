@@ -2,7 +2,7 @@ __STACK_SIZE = 1024;
 __HEAP_SIZE  = 2560;
 
 __FLASH_SIZE = 32K;
-__NVM_SIZE = 2K;
+__NVM_SIZE = 1K;
 
 MEMORY
 {
